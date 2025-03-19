@@ -7,11 +7,7 @@
       </div>
     </div>
     <router-view v-slot="{ Component, route }">
-      <transition name="fade-transform" mode="out-in">
-        <keep-alive>
-          <component v-if="!route.meta.link" :is="Component" :key="route.path" />
-        </keep-alive>
-      </transition>
+      <component v-if="!route.meta.link" :is="Component" :key="route.name" />
     </router-view>
   </section>
 </template>
@@ -55,38 +51,6 @@ watch((route) => {
 
 <style scoped lang="scss">
 .vaults {
-  width: 100%;
-  min-height: calc(100vh - 50px);
-  background-color: #EDF1F2;
-  display: flex;
-  flex-direction: row;
-
-  .vault-items {
-    background-color: #F7F9FA;
-    width: 185px;
-    min-width: 185px;
-    padding: 15px;
-
-    .item {
-      height: 35px;
-      margin-bottom: 10px;
-      padding: 0 10px;
-      display: flex;
-      flex-direction: row;
-      align-items: center;
-      border-radius: 10px;
-      font-size: 14px;
-      cursor: pointer;
-
-      &:hover {
-        background-color: #E6EBED;
-      }
-
-      &.active {
-        background-color: #E6EBED;
-        font-weight: bold;
-      }
-    }
-  }
+  
 }
 </style>

@@ -16,8 +16,8 @@
       <el-checkbox v-model="loginForm.rememberMe" style="margin:0px 0px 25px 0px;">记住密码</el-checkbox>
       <el-form-item style="width:100%;">
         <el-button :loading="loading" size="large" type="primary" style="width:100%;" @click.prevent="handleLogin">
-          <span v-if="!loading">{{t('common.text.login')}}</span>
-          <span v-else>{{t('common.text.loging')}}</span>
+          <span v-if="!loading">{{ t('common.text.login') }}</span>
+          <span v-else>{{ t('common.text.loging') }}</span>
         </el-button>
       </el-form-item>
     </el-form>
@@ -45,8 +45,8 @@ const router = useRouter();
 const { proxy } = getCurrentInstance();
 
 const loginForm = ref({
-  username: "lyn@dreamlyn.cn",
-  password: "1234567890",
+  username: '',//"lyn@dreamlyn.cn",
+  password: '',//"1234567890",
   rememberMe: false,
   code: "",
   uuid: ""
@@ -88,7 +88,7 @@ function handleLogin() {
       userStore.login(loginForm.value).then(() => {
         if (!settingsStore.inited && getAuthStore().isValid) {
           settingsStore.getSettingInfo().then(() => {
-            locale.value = settingsStore.settingInfo.language
+            locale.value = settingsStore.language.content
           })
         }
         console.log("登录成功");

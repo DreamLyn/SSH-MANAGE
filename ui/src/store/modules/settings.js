@@ -5,8 +5,8 @@ const useSettingsStore = defineStore(
   {
     state: () => ({
       inited: false,
-      theme: '',
-      language: ''
+      theme: { content: 'dark' },
+      language: { content: 'zh' }
     }),
     actions: {
       switchToTheme(theme) {

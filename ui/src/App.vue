@@ -12,7 +12,7 @@ const settingsStore = useSettingsStore()
 onMounted(() => {
   if (!settingsStore.inited && getAuthStore().isValid) {
     settingsStore.getSettingInfo().then(() => {
-      locale.value = settingsStore.settingInfo.language
+      locale.value = settingsStore.language.content
     })
   }
 })

@@ -12,7 +12,7 @@
       <div style="margin-top:20px;font-size: 15px;font-weight: bold">{{ t('forwarding.text.hosts_title') }}</div>
       <div class="ssh-list">
         <div class="ssh" v-for="(forwarding, index) in forwardingList" @dblclick="connectHost(forwarding)">
-          <div class="image" :style="{backgroundColor:forwarding.running?'#2191F6':'#5A5E73'}">
+          <div class="image" :style="{ backgroundColor: forwarding.running ? '#2191F6' : '#5A5E73' }">
             <svg-icon icon-class="l" class="icon" />
           </div>
           <div class="info">
@@ -138,7 +138,7 @@
         <div class="info">
           <div>{{ forwardingInfo.label ? forwardingInfo.label : forwardingInfo.host }}</div>
           <div style="font-size: 11px;color:gray;">ssh{{ forwardingInfo.username ? ', ' + forwardingInfo.username : ''
-          }}
+            }}
           </div>
         </div>
       </div>
@@ -179,10 +179,10 @@
 <script setup>
 import { get as getForwarding, list as listForwarding, remove as removeForwarding, save as saveForwarding, subscribe as subscribeForwarding } from '@/repository/port_forwarding';
 import { list as listSSH } from '@/repository/ssh';
-import {connectForwarding} from '@/api/api'
+import { connectForwarding } from '@/api/api'
 import { onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import useTagsViewStore from '../../store/modules/tagsView';
 
 let forwardingList = ref([])
@@ -190,6 +190,7 @@ let sshList = ref([])
 
 const { t } = useI18n() // 获取翻译函数
 const router = useRouter()
+const route = useRoute()
 const tagsViewStore = useTagsViewStore()
 const isOpen = ref(false);
 const showRemoveHost = ref(false)
@@ -282,8 +283,14 @@ function saveAndConectHost() {
 }
 
 onMounted(async () => {
+  console.log('forwarding')
+  console.log('onMounted called, route.path:', route.path);
   await refreshForwarding()
 })
+
+onUnmounted(() => {
+  console.log('Component unmounted');
+});
 </script>
 
 <style lang="scss" scoped>
