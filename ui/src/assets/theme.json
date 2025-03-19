@@ -1,0 +1,28 @@
+{
+  "dark": {
+    "name":"Termius Dark",
+    "xterm": {
+      "background": "#141729",
+      "foreground": "#20AD65",
+      "cursor": "#20AD65"
+    },
+    "tag": {
+      "background": "#202437",
+      "activeBackground": "RGBA(32, 173, 101, 0.2)",
+      "color": "#8D91A5"
+    }
+  },
+  "light": {
+    "name":"Termius Light",
+    "xterm": {
+      "background": "#D5DDE0",
+      "foreground": "#32364A",
+      "cursor": "#32364A"
+    },
+    "tag": {
+      "background": "#C4CDD1",
+      "activeBackground": "RGBA(179, 188, 193, 0.8)",
+      "color": "#32364A"
+    }
+  }
+}

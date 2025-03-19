@@ -1,0 +1,25 @@
+# .air.toml
+
+# 设置项目根目录
+root = "."
+
+# [build] 部分用于定义编译命令和其他编译选项
+[build]
+  cmd = "go build -o main.exe ."  # Windows 上生成 .exe 文件
+  bin = "main.exe"  # 指定生成的 .exe 文件名称
+  include = ["*.go", "config/**/*.yaml"]  # 监视的文件变化
+  exclude = ["vendor/**", "node_modules/**"]  # 不监视的文件或目录
+
+# [run] 部分用于定义运行命令和环境变量
+[run]
+  cmd = "./main.exe"  # 指定运行的可执行文件
+  env = ["PORT=8080"]  # 设置运行时的环境变量
+
+# [watch] 部分用于定义监视的文件和目录
+[watch]
+  include = ["*.go"]
+  exclude = ["vendor/**", "node_modules/**"]
+
+# [logger] 部分用于定义日志级别
+[logger]
+  level = "info"
