@@ -7,7 +7,9 @@
       </div>
     </div>
     <router-view v-slot="{ Component, route }">
-      <component v-if="!route.meta.link" :is="Component" :key="route.name" />
+      <keep-alive>
+        <component v-if="!route.meta.link" :is="Component" :key="route.fullPath" />
+      </keep-alive>
     </router-view>
   </section>
 </template>
@@ -34,7 +36,7 @@ const menus = ref([{
   name: "vaults.text.history",
   path: '/vaults/history'
 }])
-const showMenu = computed(() => route.meta.showMenu);function isActive(path) {
+const showMenu = computed(() => route.meta.showMenu); function isActive(path) {
   return route.path === path
 }
 function navigateTo(menu) {
