@@ -12,7 +12,9 @@
       <div style="margin-top:20px;font-size: 15px;font-weight: bold">{{ t('forwarding.text.hosts_title') }}</div>
       <div class="ssh-list">
         <div class="ssh" v-for="(forwarding, index) in forwardingList" @dblclick="connectHost(forwarding)">
-          <div class="image" :style="{ backgroundColor: forwarding.running ? '#2191F6' : '#5A5E73' }">
+          <div class="image" :class="{
+            'loading': isLoading(forwarding.id)
+          }" :style="{ backgroundColor: forwarding.running ? '#2191F6' : '#5A5E73' }">
             <svg-icon icon-class="l" class="icon" />
           </div>
           <div class="info">
@@ -51,7 +53,7 @@
               </el-dropdown-menu>
             </template>
           </el-dropdown>
-          <div class="action" @click="forwardingInfo.label ? saveHost : isOpen = false"><svg-icon
+          <div class="action" @click="forwardingInfo.label ? saveHost() : isOpen = false"><svg-icon
               icon-class="right-stop" class="icon" />
           </div>
         </div>
@@ -184,6 +186,7 @@ import { onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter, useRoute } from 'vue-router';
 import useTagsViewStore from '../../store/modules/tagsView';
+import { ElMessage } from 'element-plus';
 
 let forwardingList = ref([])
 let sshList = ref([])
@@ -196,6 +199,12 @@ const isOpen = ref(false);
 const showRemoveHost = ref(false)
 const passwordVisible = ref(false)
 const showSelectHost = ref(false)
+
+// 将loading状态改为Set来跟踪多个加载中的主机
+const loadingHostIds = ref(new Set())
+const isLoading = computed(() => {
+  return (id) => loadingHostIds.value.has(id)
+})
 
 const sshType = ref({
   type: 'ubuntu',
@@ -253,8 +262,15 @@ const togglePassword = () => {
 };
 
 //连接主机ssh
-function connectHost(forwarding) {
-  connectForwarding(forwarding.id)
+async function connectHost(forwarding) {
+  try {
+    loadingHostIds.value.add(forwarding.id) // 添加到加载集合
+    await connectForwarding(forwarding.id)
+    loadingHostIds.value.delete(forwarding.id) // 从加载集合移除
+  } catch (error) {
+    loadingHostIds.value.delete(forwarding.id) // 错误时也移除
+    ElMessage.error(t("forwarding.text.connectError"));
+  }
 }
 //保存主机信息
 function saveHost() {
@@ -306,7 +322,6 @@ onUnmounted(() => {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  flex-wrap: wrap;
   z-index: 2;
 
   .tools {
@@ -334,21 +349,14 @@ onUnmounted(() => {
 
   .ssh-list {
     margin-top: 20px;
-    display: flex;
-    gap: 10px;
-    flex-direction: row;
-    flex-wrap: wrap;
-
-
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 0.5fr)); // 自适应列数，最小 225px，最大撑满
+    gap: 10px; // 元素间距
   }
 
 }
 
 .ssh {
-  flex: 1;
-  min-width: 225px;
-  max-width: calc(50% - 15px);
-  margin-bottom: 5px;
   height: 60px;
   padding: 10px;
   border-radius: 8px;
@@ -371,6 +379,38 @@ onUnmounted(() => {
     }
   }
 
+  /* 添加旋转动画 */
+  @keyframes spin {
+    0% {
+      top: 0;
+      left: 0;
+    }
+
+    25% {
+      top: 0;
+      left: 100%;
+    }
+
+    /* 右上 */
+    50% {
+      top: 100%;
+      left: 100%;
+    }
+
+    /* 右下 */
+    75% {
+      top: 100%;
+      left: 0;
+    }
+
+    /* 左下 */
+    100% {
+      top: 0;
+      left: 0;
+    }
+
+    /* 回到起点 */
+  }
 
   .image {
     width: 40px;
@@ -383,6 +423,7 @@ onUnmounted(() => {
     align-items: center;
     color: white;
     font-size: 18px;
+
   }
 
   .info {

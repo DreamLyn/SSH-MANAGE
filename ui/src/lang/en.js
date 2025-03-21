@@ -55,6 +55,7 @@ export default {
       connect: 'Connect',
       remove: 'Delete',
       select_host: 'Select Host',
+      connectError: 'Connect Error',
     }
   },
   setting: {

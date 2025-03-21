@@ -8,8 +8,9 @@
     </div>
     <router-view v-slot="{ Component, route }">
       <keep-alive>
-        <component v-if="!route.meta.link" :is="Component" :key="route.fullPath" />
+        <component :is="Component" :key="route.fullPath" v-if="route.name == 'Terminal'" />
       </keep-alive>
+      <component :is="Component" :key="route.fullPath" v-if="route.name != 'Terminal'" />
     </router-view>
   </section>
 </template>
@@ -19,10 +20,10 @@
 
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-
 const { t } = useI18n() // 获取翻译函数
 const route = useRoute()
 const router = useRouter()
+
 const menus = ref([{
   icon: 'server',
   name: "vaults.text.hosts",
@@ -39,16 +40,18 @@ const menus = ref([{
 const showMenu = computed(() => route.meta.showMenu); function isActive(path) {
   return route.path === path
 }
+
+
 function navigateTo(menu) {
   if (menu.icon !== 'history') {
     router.push(menu.path)
   }
 }
-onMounted(() => {
-})
+// onMounted(() => {
+// })
 
-watch((route) => {
-})
+// watch((route) => {
+// })
 
 </script>
 

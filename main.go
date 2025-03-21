@@ -66,8 +66,7 @@ func main() {
 	forwardingHandler := handlers.NewPortForwardingHandler()
 	app.OnServe().BindFunc(func(e *core.ServeEvent) error {
 		e.Router.POST("/forwarding/{id}", func(e *core.RequestEvent) error {
-			forwardingHandler.Handle(e.Response, e.Request) // 将 e.Response 和 e.Request 传递给 handler.Handle
-			return nil
+			return forwardingHandler.Handle(e) // 将 e.Response 和 e.Request 传递给 handler.Handle
 		})
 		return e.Next()
 	})
@@ -84,6 +83,7 @@ func main() {
 
 	app.OnTerminate().BindFunc(func(e *core.TerminateEvent) error {
 		// routes.Unregister()
+		forwardingHandler.Shutdown()
 		slog.Info("[SSH-MANAGE] Exit!")
 		return e.Next()
 	})

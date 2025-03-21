@@ -17,6 +17,7 @@ export const connectForwarding = async (forwardingId) => {
   });
 
   if (resp.code != 0) {
+    console.log(resp)
     throw new ClientResponseError({ status: resp.code, response: resp, data: {} });
   }
 

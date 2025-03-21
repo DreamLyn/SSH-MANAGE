@@ -53,12 +53,10 @@ export default {
       host_address_remote: '远端地址',
       remote_address: '远端地址',
       remote_port: '远端端口',
-
       connect: '连接',
       remove: '删除',
-
-
       select_host: '选择主机',
+      connectError: '连接失败',
     }
   },
   setting: {

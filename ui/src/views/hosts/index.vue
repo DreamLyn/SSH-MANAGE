@@ -288,7 +288,7 @@ onMounted(() => {
   .ssh-list {
     margin-top: 20px;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(225px, 1fr)); // 自适应列数，最小 225px，最大撑满
+    grid-template-columns: repeat(auto-fit, minmax(225px, 0.5fr)); // 自适应列数，最小 225px，最大撑满
     gap: 10px; // 元素间距
   }
 

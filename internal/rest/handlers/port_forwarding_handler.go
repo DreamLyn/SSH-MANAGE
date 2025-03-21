@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/dreamlyn/ssh-manage/internal/app"
+	"github.com/dreamlyn/ssh-manage/internal/rest/resp"
 	"github.com/pocketbase/pocketbase/core"
 	"golang.org/x/crypto/ssh"
 )
@@ -26,39 +27,36 @@ func NewPortForwardingHandler() *PortForwardingHandler {
 }
 
 // Handle 处理 HTTP 请求并启动端口转发
-func (h *PortForwardingHandler) Handle(w http.ResponseWriter, r *http.Request) {
+func (h *PortForwardingHandler) Handle(e *core.RequestEvent) error {
+	r := e.Request
+	w := e.Response
 	app := app.GetApp()
 	id := r.URL.Path[len("/forwarding/"):]
 	forwardingRecord, _ := app.FindRecordById("port_forwarding", id)
 	if forwardingRecord == nil {
 		log.Println("找不到对应的端口转发记录")
-		http.Error(w, "端口转发记录不存在", http.StatusNotFound)
-		return
+		return resp.Err(e, e.Error(500, "端口转发记录不存在", nil))
 	}
 
 	if forwardingRecord.GetBool("running") {
 		h.StopForwarding(id)
 		w.WriteHeader(http.StatusAccepted) // 202 表示请求已接受但处理尚未完成
-		return
+		return resp.Ok(e, nil)
 	}
 
 	sshRecord, _ := app.FindRecordById("ssh", forwardingRecord.GetString("sshId"))
 	if sshRecord == nil {
 		log.Println("找不到对应的 SSH 记录")
-		http.Error(w, "SSH 记录不存在", http.StatusNotFound)
-		return
+		return resp.Err(e, e.Error(500, "SSH 记录不存在", nil))
 	}
-
-	// 立即返回响应
-	w.WriteHeader(http.StatusAccepted) // 202 表示请求已接受但处理尚未完成
-	fmt.Fprintf(w, "端口转发请求已接受: %s\n", id)
-
 	// 异步启动端口转发
 	h.wg.Add(1)
 	go func() {
 		defer h.wg.Done()
 		h.startPortForwarding(id, sshRecord, forwardingRecord)
 	}()
+
+	return resp.Ok(e, nil)
 }
 
 // startPortForwarding 启动端口转发
@@ -77,7 +75,11 @@ func (h *PortForwardingHandler) startPortForwarding(id string, sshRecord, forwar
 	}
 
 	// 连接 SSH 服务器
-	sshClient, err := ssh.Dial("tcp", sshRecord.GetString("host")+":"+sshRecord.GetString("port"), sshConfig)
+	port := sshRecord.GetString("port")
+	if port == "" {
+		port = "22"
+	}
+	sshClient, err := ssh.Dial("tcp", sshRecord.GetString("host")+":"+port, sshConfig)
 	if err != nil {
 		log.Printf("无法连接 SSH 服务器: %v", err)
 		return
@@ -144,15 +146,28 @@ func (h *PortForwardingHandler) forward(localConn net.Conn, sshClient *ssh.Clien
 	defer remoteConn.Close()
 
 	errChan := make(chan error, 2)
+	// go func() {
+	// 	_, err := io.Copy(localConn, remoteConn)
+	// 	errChan <- err
+	// }()
+	// go func() {
+	// 	_, err := io.Copy(remoteConn, localConn)
+	// 	errChan <- err
+	// }()
 	go func() {
 		_, err := io.Copy(localConn, remoteConn)
+		if err != nil {
+			log.Printf("本地到远程转发失败: %v", err)
+		}
 		errChan <- err
 	}()
 	go func() {
 		_, err := io.Copy(remoteConn, localConn)
+		if err != nil {
+			log.Printf("远程到本地转发失败: %v", err)
+		}
 		errChan <- err
 	}()
-
 	select {
 	case <-ctx.Done():
 		// 上下文取消时，主动关闭连接
@@ -182,4 +197,22 @@ func (h *PortForwardingHandler) StopForwarding(id string) {
 			h.cancelFuncs.Delete(id + "_listener")
 		}
 	}
+}
+
+// Shutdown 停止所有端口转发并清理资源
+func (h *PortForwardingHandler) Shutdown() {
+	// 停止所有端口转发
+	h.cancelFuncs.Range(func(key, value interface{}) bool {
+		if cancel, ok := value.(context.CancelFunc); ok {
+			cancel() // 触发上下文取消
+		} else if listener, ok := value.(net.Listener); ok {
+			listener.Close() // 关闭监听器
+		}
+		h.cancelFuncs.Delete(key)
+		return true
+	})
+
+	// 等待所有协程完成
+	h.wg.Wait()
+	log.Println("所有端口转发已停止，资源已清理")
 }
