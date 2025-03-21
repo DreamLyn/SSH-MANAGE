@@ -47,7 +47,7 @@
             </template>
           </el-dropdown>
 
-          <div class="action"  @click="sshInfo.host?saveHost:isOpen=false"><svg-icon icon-class="right-stop"
+          <div class="action"  @click="sshInfo.host?saveHost():isOpen=false"><svg-icon icon-class="right-stop"
               class="icon" /></div>
         </div>
       </div>
@@ -139,14 +139,11 @@
 </template>
 
 <script setup>
-import { list as listSSH, save as saveSSH, get as getSSH, remove as removeSSH } from '@/repository/ssh';
-import { onMounted } from 'vue';
-import useTagsViewStore from '../../store/modules/tagsView';
+import { get as getSSH, list as listSSH, remove as removeSSH, save as saveSSH } from '@/repository/ssh';
+import { onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
-import { get } from '@vueuse/core';
-import { ref } from 'vue';
-import { remove } from 'nprogress';
-import { useI18n } from 'vue-i18n'
+import useTagsViewStore from '../../store/modules/tagsView';
 
 let sshList = ref([])
 
@@ -200,15 +197,25 @@ const togglePassword = () => {
 
 //连接主机ssh
 function connectHost(ssh) {
-  const key = Date.now().toString(36) + Math.random().toString(36).substring(2, 9); // 生成唯一 key
-  tagsViewStore.addCachedView({
-    key: key,
-    name: (ssh.label ? ssh.label : ssh.host) + (tagsViewStore.cachedViews.length == 0 ? '' :
-      ' (' + tagsViewStore.cachedViews.length + ')'),
-    sshId: ssh.id
-  })
+  const baseName = ssh.label ? ssh.label : ssh.host; // 获取基础名称
+  const cachedViews = tagsViewStore.cachedViews;
+  
+  // 提取与 baseName 相关的名称并解析编号，0 表示无编号
+  const suffixes = cachedViews
+    .map(view => view.name.match(new RegExp(`^${baseName}(?: \\((\\d+)\\))?$`)))
+    .filter(match => match) // 过滤掉不匹配的
+    .map(match => (match[1] ? parseInt(match[1], 10) : 0));
+  
+  // 计算新名称：无重名用 baseName，否则用最大编号 + 1
+  const maxSuffix = suffixes.length ? Math.max(...suffixes) : -1;
+  const newName = maxSuffix < 0 ? baseName : `${baseName} (${maxSuffix + 1})`;
+
+  // 生成唯一 key 并添加缓存视图
+  const key = Date.now().toString(36) + Math.random().toString(36).substring(2, 9);
+  tagsViewStore.addCachedView({ key, name: newName, sshId: ssh.id });
   router.push(`/terminal/${key}`);
 }
+
 //保存主机信息
 function saveHost() {
   saveSSH(sshInfo.value).then(response => {
@@ -253,7 +260,6 @@ onMounted(() => {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  flex-wrap: wrap;
   z-index: 2;
 
   .tools {
@@ -281,21 +287,15 @@ onMounted(() => {
 
   .ssh-list {
     margin-top: 20px;
-    display: flex;
-    gap: 10px;
-    flex-direction: row;
-    flex-wrap: wrap;
-
-
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(225px, 1fr)); // 自适应列数，最小 225px，最大撑满
+    gap: 10px; // 元素间距
   }
 
 }
 
 .ssh {
-  flex: 1;
-  min-width: 225px;
-  max-width: calc(50% - 15px);
-  margin-bottom: 5px;
+ 
   height: 60px;
   padding: 10px;
   border-radius: 8px;

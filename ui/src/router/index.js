@@ -1,7 +1,6 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 /* Layout */
 import Layout from '@/layout'
-import Vaults from '@/layout/components/Vaults'
 
 /**
  * Note: 路由配置项

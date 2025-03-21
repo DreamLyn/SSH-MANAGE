@@ -9,4 +9,5 @@ type PortForwarding struct {
 	RemoteAddress string `json:"remoteAddress" db:"remoteAddress"`
 	RemotePort    string `json:"remotePort" db:"remotePort"`
 	SSHId         string `json:"sshId" db:"sshId"`
+	Running       bool   `json:"running" db:"running"`
 }

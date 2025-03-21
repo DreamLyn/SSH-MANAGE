@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/dreamlyn/ssh-manage/internal/app"
+	"github.com/dreamlyn/ssh-manage/internal/repository"
 	"github.com/dreamlyn/ssh-manage/internal/rest/handlers"
 
 	"github.com/dreamlyn/ssh-manage/ui"
@@ -46,6 +47,9 @@ func main() {
 
 	//监听系统启动，初始化
 	app.OnServe().BindFunc(func(e *core.ServeEvent) error {
+		//启动时，将数据库里端口转发的running清掉
+		portForwardingRepo := repository.NewPortForwardingRepository()
+		portForwardingRepo.Initialize()
 		return e.Next()
 	})
 
