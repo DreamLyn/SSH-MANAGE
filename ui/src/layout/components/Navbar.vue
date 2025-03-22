@@ -16,14 +16,18 @@
       <!-- Host标签 -->
       <div class="host-tags">
         <div v-for="(tag, index) in tagsViewStore.cachedViews" class="host-tag" :style="{
-          width: isCurTerminal(tag) ? '180px' : '120px',
           backgroundColor: isCurTerminal(tag) ? themes[settingsStore.theme.content].tag.activeBackground : isInTerminal() ? themes[settingsStore.theme.content].tag.background : '#444760',
-          color: isCurTerminal(tag) ? themes[settingsStore.theme.content].xterm.foreground : isInTerminal() ? themes[settingsStore.theme.content].tag.color : '#FFFFFF'
+          color: isCurTerminal(tag) ? themes[settingsStore.theme.content].xterm.foreground : isInTerminal() ? themes[settingsStore.theme.content].tag.color : '#FFFFFF',
         }" @mouseenter="tag.hovering = true" @mouseleave="tag.hovering = false" @click="switchTab(tag)">
           <div class="image" @click.stop="closeHost(tag, index)">
             <svg-icon :icon-class="tag.hovering || isCurTerminal(tag) ? 'close' : 'server'" />
           </div>
-          <div style="margin-left: 8px;">{{ tag.name }}</div>
+          <div style="margin-left: 8px;" :style="{
+            width: isCurTerminal(tag) ? '180px' : '120px',
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis'
+          }">{{ tag.name }}</div>
         </div>
       </div>
     </div>
@@ -192,6 +196,7 @@ function logout() {
       .host-tag {
         height: 30px;
         padding-left: 5px;
+        padding-right: 5px;
         border-radius: 8px;
         /* #202437;*/
         display: flex;
